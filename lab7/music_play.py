@@ -1,40 +1,88 @@
 import pygame
-import keyboard
+import os
 
-pygame.mixer.init()
+pygame.init()
 
-playlist = ["Attention.mp3", "Суу.mp3", "la la la.mp3"]
-current_track = 0
+playlist = []
+# музыкалар орналасқан жерге path 
+music_folder = r"C:\Users\nurbo\new_folder\LABS\lab7"
+allmusic = os.listdir(music_folder)
 
-def play_music():
-    pygame.mixer.music.load(playlist[current_track])
-    pygame.mixer.music.play()
+# playlist-қа .mp3 деп аяқталса қосамыз 
+for song in allmusic:
+    if song.endswith(".mp3"):
+        playlist.append(os.path.join(music_folder, song))
+# экран бетіне шағатын терезе көлемі, аты
+screen = pygame.display.set_mode((800, 800))
+pygame.display.set_caption("Darkhan-Juzz")
+clock = pygame.time.Clock()
 
-def stop_music():
-    pygame.mixer.music.stop()
+# артқы фонды енгіземіз
+background = pygame.image.load(os.path.join("background.jpg"))
 
-def next_track():
-    global current_track
-    current_track = (current_track + 1) % len(playlist)
-    play_music()
+# кнопкалар тұратын жердің фонын жасаймыз, алдымен көлемі, сосын RGB ақ түс
+bg = pygame.Surface((500, 200))
+bg.fill((255, 255, 255))
 
-def previous_track():
-    global current_track
-    current_track = (current_track - 1) % len(playlist)
-    play_music()
+# плейлист аты шығып тұратын жер көлемі
+font2 = pygame.font.SysFont(None, 20)
 
-print("Press 'p' to play, 's' to stop, 'n' for next, 'b' for previous.")
-while True:
-    if keyboard.is_pressed('p'):
-        play_music()
-    elif keyboard.is_pressed('s'):
-        stop_music()
-    elif keyboard.is_pressed('n'):
-        next_track()
-    elif keyboard.is_pressed('b'):
-        previous_track()
-    elif keyboard.is_pressed('q'):
-        print("Exciting...")
-        break
+# кнопкаларды папкадан енгіземіз
+playb = pygame.image.load("play.png")
+pausb = pygame.image.load("pause.png")
+nextb = pygame.image.load("next.png")
+prevb = pygame.image.load("back.png")
 
-pygame.quit()
+index = 0
+aplay = False
+
+pygame.mixer.music.load(playlist[index]) 
+pygame.mixer.music.play(1)
+aplay = True 
+
+run = True
+
+while run:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+            pygame.quit()
+            exit()
+        elif event.type == pygame.KEYDOWN: #клавишты басса
+            if event.key == pygame.K_SPACE: #егер пробелге тең болса
+                if aplay:
+                    aplay = False
+                    pygame.mixer.music.pause()
+                else:
+                    aplay = True
+                    pygame.mixer.music.unpause()
+
+            if event.key == pygame.K_RIGHT: #егер оң жаққа тең болса
+                index = (index + 1) % len(playlist)
+                pygame.mixer.music.load(playlist[index])
+                pygame.mixer.music.play()
+
+            if event.key == pygame.K_LEFT: #егер сол жаққа тең болса
+                index = (index - 1) % len(playlist)
+                pygame.mixer.music.load(playlist[index])
+                pygame.mixer.music.play()
+    #музыка аты шығатын жер 
+    text2 = font2.render(os.path.basename(playlist[index]), True, (20, 20, 50))
+    
+    # әр кнопканың орналасуын, көлемін көрсетеміз
+    screen.blit(background, (-50, 0))
+    screen.blit(bg, (155, 500))
+    screen.blit(text2, (365, 520))
+    playb = pygame.transform.scale(playb, (70, 70))
+    pausb = pygame.transform.scale(pausb, (70, 70))
+    if aplay:
+        screen.blit(pausb, (370, 590))
+    else: 
+        screen.blit(playb, (370, 590))
+    nextb = pygame.transform.scale(nextb, (70, 70))
+    screen.blit(nextb, (460, 587))
+    prevb = pygame.transform.scale(prevb, (75, 75))
+    screen.blit(prevb, (273, 585))
+
+    clock.tick(24)
+    pygame.display.update()
